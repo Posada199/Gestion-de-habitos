@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | HabitMaster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="loader" class="loader">Cargando tu panel...</div>
+
+  <div id="app" hidden>
+    <header class="topbar">
+      <span class="brand"><span class="brand__logo">✓</span>HabitMaster</span>
+      <div class="topbar__user">
+        <span id="user-avatar" class="avatar" aria-hidden="true"></span>
+        <div class="topbar__info">
+          <div id="user-name" class="topbar__name"></div>
+          <div id="user-email" class="topbar__email"></div>
+        </div>
+        <button id="logout-btn" type="button" class="btn btn-outline">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="welcome">
+        <h1 id="welcome-title">Hola</h1>
+        <p id="today-date"></p>
+      </section>
+
+      <section class="stats" aria-label="Resumen">
+        <article class="stat-card">
+          <div class="stat-card__label">Hábitos activos</div>
+          <div class="stat-card__value" id="stat-active">0</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__label">Completados hoy</div>
+          <div class="stat-card__value" id="stat-today">0</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__label">Mejor racha</div>
+          <div class="stat-card__value" id="stat-streak">0 días</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__label">Miembro desde</div>
+          <div class="stat-card__value" id="member-since">-</div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Mis hábitos</h2>
+          <button type="button" class="btn btn-primary" disabled title="Disponible en la próxima fase">+ Nuevo hábito</button>
+        </div>
+        <div class="empty-state">
+          <svg class="empty-state__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 22V11" />
+            <path d="M12 11C12 7 9 4 4 4c0 5 3 7 8 7Z" />
+            <path d="M12 14c0-4 3-7 8-7 0 5-3 7-8 7Z" />
+          </svg>
+          <h3>Aún no tienes hábitos</h3>
+          <p>Muy pronto podrás crear tus hábitos y hacer seguimiento de tu progreso diario.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
