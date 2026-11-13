@@ -15,6 +15,8 @@ function validateRegister({ name, email, password, confirmPassword }) {
     errors.password = 'La contraseña debe tener entre 8 y 72 caracteres';
   } else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
     errors.password = 'La contraseña debe contener letras y números';
+  } else if (new TextEncoder().encode(password).length > 72) {
+    errors.password = 'La contraseña es demasiado larga';
   }
   if (confirmPassword !== password) errors.confirmPassword = 'Las contraseñas no coinciden';
   return errors;

@@ -32,7 +32,9 @@ const registerRules = [
     .isString().withMessage('La contraseña es obligatoria')
     .isLength({ min: 8, max: 72 }).withMessage('La contraseña debe tener entre 8 y 72 caracteres')
     .matches(/[A-Za-z]/).withMessage('La contraseña debe contener al menos una letra')
-    .matches(/\d/).withMessage('La contraseña debe contener al menos un número'),
+    .matches(/\d/).withMessage('La contraseña debe contener al menos un número')
+    // bcrypt ignora todo lo que exceda 72 bytes; con caracteres multibyte 72 caracteres pueden superarlo.
+    .custom((value) => Buffer.byteLength(value, 'utf8') <= 72).withMessage('La contraseña es demasiado larga'),
 ];
 
 const loginRules = [

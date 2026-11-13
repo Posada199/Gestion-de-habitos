@@ -75,6 +75,13 @@ describe('POST /api/auth/register', () => {
       .send({ ...validUser, password: 'solotexto' });
     assert.equal(res.status, 400);
   });
+  it('rechaza contraseñas de más de 72 bytes aunque tengan menos de 72 caracteres', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ ...validUser, password: `a1${'ñ'.repeat(40)}` });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.details[0].field, 'password');
+  });
 });
 
 describe('POST /api/auth/login', () => {
