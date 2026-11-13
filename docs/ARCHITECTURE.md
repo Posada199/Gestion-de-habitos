@@ -48,18 +48,21 @@ Express 5 propaga automáticamente los errores de funciones `async` al `errorHan
 - Método `comparePassword(candidate)`.
 - `toJSON` expone `id` y elimina `_id`, `__v` y `password`.
 
-### Habit (definido; CRUD en la fase 2)
+### Habit
 
 | Campo | Tipo | Reglas |
 |---|---|---|
-| `user` | ObjectId → User | Obligatorio, indexado |
-| `name` | String | Obligatorio, máx. 80 |
-| `description` | String | Máx. 300 |
-| `frequency` | String | `daily` \| `weekly` |
-| `color` | String | Hex `#rrggbb` |
-| `completions` | [Date] | Días completados |
-| `archived` | Boolean | `false` por defecto |
-| `createdAt` / `updatedAt` | Date | `timestamps` |
+| `user` | ObjectId → User | Obligatorio; lo asigna el servidor desde el JWT |
+| `name` | String | Obligatorio, 2–80 caracteres |
+| `description` | String | Opcional, máx. 300 |
+| `category` | String | `salud` \| `ejercicio` \| `alimentacion` \| `estudio` \| `trabajo` \| `finanzas` \| `mindfulness` \| `social` \| `hogar` \| `otro` |
+| `frequency` | String | `daily` \| `weekly` \| `monthly` |
+| `goal.target` | Number | Entero de 1 a 1000 |
+| `goal.unit` | String | Máx. 30, `veces` por defecto |
+| `status` | String | `active` (por defecto) \| `inactive` |
+| `createdAt` / `updatedAt` | Date | `timestamps` (fecha de creación) |
+
+Índices: `{ user, createdAt }` para el listado y `{ user, status, category, frequency }` para los filtros. Los valores permitidos viven en `server/src/constants/habits.js` y el frontend los obtiene de `GET /api/habits/options`.
 
 Relación: un `User` tiene muchos `Habit` (1:N).
 
@@ -72,7 +75,30 @@ Relación: un `User` tiene muchos `Habit` (1:N).
 | POST | `/api/auth/login` | No | 200 `{ data: { user, token } }` | 400 validación, 401 credenciales, 429 |
 | GET | `/api/auth/me` | Bearer | 200 `{ data: { user } }` | 401 sin token / inválido / expirado / usuario eliminado |
 
-Endpoints planificados (fase 2): `GET/POST /api/habits`, `GET/PUT/DELETE /api/habits/:id`, `POST/DELETE /api/habits/:id/complete`.
+| GET | `/api/habits` | Bearer | 200 `{ data: { habits, pagination } }` | 400 filtros inválidos, 401 |
+| POST | `/api/habits` | Bearer | 201 `{ data: { habit } }` | 400 validación, 401 |
+| GET | `/api/habits/:id` | Bearer | 200 `{ data: { habit } }` | 400 id inválido, 401, 404 |
+| PUT | `/api/habits/:id` | Bearer | 200 `{ data: { habit } }` | 400, 401, 404 |
+| PATCH | `/api/habits/:id/status` | Bearer | 200 `{ data: { habit } }` | 400, 401, 404 |
+| DELETE | `/api/habits/:id` | Bearer | 200 | 400, 401, 404 |
+| GET | `/api/habits/stats` | Bearer | 200 `{ data: { total, active, inactive, byCategory } }` | 401 |
+| GET | `/api/habits/options` | Bearer | 200 `{ data: { categories, frequencies, statuses, sorts } }` | 401 |
+
+Todas las consultas de hábitos filtran por `user: req.user.id`, así que un usuario nunca puede leer ni modificar hábitos ajenos (responden 404). El body se reduce con `matchedData` a los campos validados, por lo que no se puede inyectar `user` u otros campos. La búsqueda (`search`) se escapa antes de construir la expresión regular y compara nombre y descripción sin distinguir mayúsculas.
+
+### Gestión de hábitos (frontend)
+
+`dashboard.js` valida la sesión con `/api/auth/me` y después inicializa `habits.js`, que:
+
+1. Carga las opciones (`/api/habits/options`) y llena los selects de filtros y formulario.
+2. Lista los hábitos con búsqueda (debounce de 300 ms), filtros por categoría/frecuencia/estado, orden y paginación.
+3. Usa un único `<dialog>` para crear y editar, con validación en cliente y errores del servidor por campo.
+4. Muestra el detalle en un `<dialog>` de consulta, confirma la eliminación en otro y activa/desactiva con un interruptor.
+5. Tras cada cambio recarga el listado y las estadísticas. Cualquier 401 cierra la sesión y vuelve al login.
+
+Todo el contenido del usuario se pinta con `textContent`, nunca con `innerHTML`.
+
+Próxima fase: `POST/DELETE /api/habits/:id/complete` para el seguimiento diario y las rachas.
 
 ## Flujos
 
