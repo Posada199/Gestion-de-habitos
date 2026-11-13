@@ -416,7 +416,10 @@ const HabitsModule = (() => {
       applyFilters();
     });
     els.clearFilters.addEventListener('click', () => {
-      els.filters.reset();
+      Array.from(els.filters.elements).forEach((control) => {
+        if (control.tagName === 'SELECT') control.selectedIndex = 0;
+        else if (control.tagName === 'INPUT') control.value = '';
+      });
       applyFilters();
     });
 
