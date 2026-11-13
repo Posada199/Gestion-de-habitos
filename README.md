@@ -7,7 +7,7 @@ Sistema web de gestión de hábitos. Permite a cada usuario registrarse, iniciar
 | Capa | Tecnología |
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript vanilla (servido por Express desde `public/`) |
-| Backend | Node.js (>= 18) + Express 5 |
+| Backend | Node.js (>= 20.19) + Express 5 |
 | Base de datos | MongoDB + Mongoose |
 | Autenticación | JWT (`jsonwebtoken`) + `bcrypt` |
 | Seguridad | `helmet`, `express-validator`, `express-rate-limit`, CORS configurable |
@@ -15,7 +15,7 @@ Sistema web de gestión de hábitos. Permite a cada usuario registrarse, iniciar
 
 ## Requisitos
 
-- Node.js 18 o superior y npm
+- Node.js 20.19 o superior y npm
 - MongoDB 6+ en local, en Docker o en MongoDB Atlas
 
 ## Puesta en marcha
