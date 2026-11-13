@@ -14,7 +14,14 @@ const PUBLIC_DIR = path.resolve(__dirname, '../../public');
 const app = express();
 
 app.disable('x-powered-by');
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      // El servidor escucha en HTTP; forzar HTTPS rompe la carga de assets en local (p. ej. Safari).
+      directives: { upgradeInsecureRequests: env.isProduction ? [] : null },
+    },
+  })
+);
 if (env.corsOrigin.length) {
   app.use(cors({ origin: env.corsOrigin }));
 }
