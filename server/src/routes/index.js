@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { isDBConnected } = require('../config/db');
 const authRoutes = require('./auth.routes');
+const habitRoutes = require('./habit.routes');
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.get('/health', (req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.use('/habits', habitRoutes);
 
 module.exports = router;

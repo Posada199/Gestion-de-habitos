@@ -31,16 +31,16 @@
 
       <section class="stats" aria-label="Resumen">
         <article class="stat-card">
-          <div class="stat-card__label">Hábitos activos</div>
-          <div class="stat-card__value" id="stat-active">0</div>
+          <div class="stat-card__label">Total de hábitos</div>
+          <div class="stat-card__value" id="stat-total">0</div>
         </article>
         <article class="stat-card">
-          <div class="stat-card__label">Completados hoy</div>
-          <div class="stat-card__value" id="stat-today">0</div>
+          <div class="stat-card__label">Activos</div>
+          <div class="stat-card__value stat-card__value--success" id="stat-active">0</div>
         </article>
         <article class="stat-card">
-          <div class="stat-card__label">Mejor racha</div>
-          <div class="stat-card__value" id="stat-streak">0 días</div>
+          <div class="stat-card__label">Inactivos</div>
+          <div class="stat-card__value stat-card__value--muted" id="stat-inactive">0</div>
         </article>
         <article class="stat-card">
           <div class="stat-card__label">Miembro desde</div>
@@ -51,22 +51,182 @@
       <section class="panel">
         <div class="panel__header">
           <h2>Mis hábitos</h2>
-          <button type="button" class="btn btn-primary" disabled title="Disponible en la próxima fase">+ Nuevo hábito</button>
+          <button id="new-habit-btn" type="button" class="btn btn-primary">+ Nuevo hábito</button>
         </div>
-        <div class="empty-state">
+
+        <form id="filters" class="toolbar" role="search" aria-label="Buscar y filtrar hábitos">
+          <div class="toolbar__search">
+            <label for="filter-search" class="sr-only">Buscar hábito</label>
+            <input id="filter-search" name="search" type="search" placeholder="Buscar hábito..." maxlength="80" autocomplete="off" />
+          </div>
+          <label class="sr-only" for="filter-category">Categoría</label>
+          <select id="filter-category" name="category">
+            <option value="">Todas las categorías</option>
+          </select>
+          <label class="sr-only" for="filter-frequency">Frecuencia</label>
+          <select id="filter-frequency" name="frequency">
+            <option value="">Todas las frecuencias</option>
+          </select>
+          <label class="sr-only" for="filter-status">Estado</label>
+          <select id="filter-status" name="status">
+            <option value="">Todos los estados</option>
+          </select>
+          <label class="sr-only" for="filter-sort">Ordenar</label>
+          <select id="filter-sort" name="sort">
+            <option value="newest">Más recientes</option>
+            <option value="oldest">Más antiguos</option>
+            <option value="name">Nombre (A-Z)</option>
+          </select>
+          <button id="clear-filters" type="button" class="btn btn-outline btn-sm" hidden>Limpiar filtros</button>
+        </form>
+
+        <div id="list-alert" class="alert alert-error" role="alert" hidden></div>
+        <p id="results-summary" class="results-summary" aria-live="polite"></p>
+
+        <div id="habit-list" class="habit-grid" aria-busy="true"></div>
+
+        <div id="empty-state" class="empty-state" hidden>
           <svg class="empty-state__icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 22V11" />
             <path d="M12 11C12 7 9 4 4 4c0 5 3 7 8 7Z" />
             <path d="M12 14c0-4 3-7 8-7 0 5-3 7-8 7Z" />
           </svg>
           <h3>Aún no tienes hábitos</h3>
-          <p>Muy pronto podrás crear tus hábitos y hacer seguimiento de tu progreso diario.</p>
+          <p>Crea tu primer hábito para empezar a construir tu rutina.</p>
+          <button id="empty-new-btn" type="button" class="btn btn-primary">+ Crear mi primer hábito</button>
         </div>
+
+        <div id="no-results" class="empty-state" hidden>
+          <h3>Sin resultados</h3>
+          <p>Ningún hábito coincide con la búsqueda o los filtros seleccionados.</p>
+        </div>
+
+        <nav id="pagination" class="pagination" aria-label="Paginación" hidden>
+          <button id="prev-page" type="button" class="btn btn-outline btn-sm">Anterior</button>
+          <span id="page-info"></span>
+          <button id="next-page" type="button" class="btn btn-outline btn-sm">Siguiente</button>
+        </nav>
       </section>
     </main>
   </div>
 
+  <dialog id="habit-dialog" class="modal" aria-labelledby="habit-dialog-title">
+    <form id="habit-form" class="form" novalidate>
+      <header class="modal__header">
+        <h2 id="habit-dialog-title">Nuevo hábito</h2>
+        <button type="button" class="modal__close" data-close aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="habit-form-alert" class="alert" role="alert" hidden></div>
+
+      <div class="form-group">
+        <label for="habit-name">Nombre</label>
+        <input id="habit-name" name="name" type="text" maxlength="80" placeholder="Ej. Leer, Meditar, Correr" required />
+        <span class="error" data-error-for="name"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="habit-description">Descripción <span class="optional">(opcional)</span></label>
+        <textarea id="habit-description" name="description" rows="3" maxlength="300" placeholder="¿Por qué quieres este hábito?"></textarea>
+        <span class="hint"><span id="description-count">0</span>/300</span>
+        <span class="error" data-error-for="description"></span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="habit-category">Categoría</label>
+          <select id="habit-category" name="category" required>
+            <option value="">Selecciona...</option>
+          </select>
+          <span class="error" data-error-for="category"></span>
+        </div>
+        <div class="form-group">
+          <label for="habit-frequency">Frecuencia</label>
+          <select id="habit-frequency" name="frequency" required>
+            <option value="">Selecciona...</option>
+          </select>
+          <span class="error" data-error-for="frequency"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="habit-goal-target">Meta</label>
+          <input id="habit-goal-target" name="goal.target" type="number" min="1" max="1000" step="1" value="1" required />
+          <span class="error" data-error-for="goal.target"></span>
+        </div>
+        <div class="form-group">
+          <label for="habit-goal-unit">Unidad</label>
+          <input id="habit-goal-unit" name="goal.unit" type="text" maxlength="30" placeholder="veces, minutos, páginas..." list="unit-suggestions" />
+          <datalist id="unit-suggestions">
+            <option value="veces"></option>
+            <option value="minutos"></option>
+            <option value="horas"></option>
+            <option value="páginas"></option>
+            <option value="vasos"></option>
+            <option value="km"></option>
+          </datalist>
+          <span class="error" data-error-for="goal.unit"></span>
+        </div>
+      </div>
+      <p id="goal-preview" class="goal-preview"></p>
+
+      <div class="form-group">
+        <label for="habit-status">Estado</label>
+        <select id="habit-status" name="status">
+          <option value="active">Activo</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+        <span class="error" data-error-for="status"></span>
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" class="btn btn-outline" data-close>Cancelar</button>
+        <button id="habit-submit" type="submit" class="btn btn-primary">Crear hábito</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="detail-dialog" class="modal" aria-labelledby="detail-name">
+    <header class="modal__header">
+      <div>
+        <div class="habit-card__badges">
+          <span id="detail-category" class="badge"></span>
+          <span id="detail-status" class="status-pill"></span>
+        </div>
+        <h2 id="detail-name"></h2>
+      </div>
+      <button type="button" class="modal__close" data-close aria-label="Cerrar">&times;</button>
+    </header>
+    <p id="detail-description" class="detail__description"></p>
+    <dl class="detail__list">
+      <div><dt>Frecuencia</dt><dd id="detail-frequency"></dd></div>
+      <div><dt>Meta</dt><dd id="detail-goal"></dd></div>
+      <div><dt>Fecha de creación</dt><dd id="detail-created"></dd></div>
+      <div><dt>Última actualización</dt><dd id="detail-updated"></dd></div>
+    </dl>
+    <footer class="modal__footer">
+      <button type="button" class="btn btn-outline" data-close>Cerrar</button>
+      <button id="detail-edit" type="button" class="btn btn-primary">Editar</button>
+    </footer>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal modal--sm" aria-labelledby="confirm-title">
+    <header class="modal__header">
+      <h2 id="confirm-title">Eliminar hábito</h2>
+    </header>
+    <p>¿Seguro que quieres eliminar <strong id="confirm-name"></strong>? Esta acción no se puede deshacer.</p>
+    <footer class="modal__footer">
+      <button type="button" class="btn btn-outline" data-close>Cancelar</button>
+      <button id="confirm-delete" type="button" class="btn btn-danger">Eliminar</button>
+    </footer>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
   <script src="/js/api.js"></script>
+  <script src="/js/form.js"></script>
+  <script src="/js/habits.js"></script>
   <script src="/js/dashboard.js"></script>
 </body>
 </html>

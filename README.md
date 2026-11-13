@@ -1,6 +1,6 @@
 # HabitMaster
 
-Sistema web de gestión de hábitos. Permite a cada usuario registrarse, iniciar sesión y (en las siguientes fases) crear hábitos, marcarlos como completados y seguir sus rachas.
+Sistema web de gestión de hábitos. Permite a cada usuario registrarse, iniciar sesión y gestionar sus hábitos (crear, editar, eliminar, consultar, buscar, filtrar y activar/desactivar). El seguimiento diario y las rachas llegan en la siguiente fase.
 
 ## Stack
 
@@ -66,6 +66,7 @@ Gestion-de-habitos/
 ├── server/
 │   ├── src/
 │   │   ├── config/        # env.js (variables), db.js (conexión Mongoose)
+│   │   ├── constants/     # habits.js (categorías, frecuencias, estados, orden)
 │   │   ├── models/        # User.js, Habit.js
 │   │   ├── controllers/   # Capa HTTP: lee req, responde res
 │   │   ├── services/      # Lógica de negocio
@@ -80,7 +81,7 @@ Gestion-de-habitos/
 │   ├── register.html      # Registro
 │   ├── dashboard.html     # Dashboard (protegido)
 │   ├── css/styles.css
-│   └── js/                # api.js, form.js, login.js, register.js, dashboard.js
+│   └── js/                # api.js, form.js, login.js, register.js, dashboard.js, habits.js
 ├── docs/ARCHITECTURE.md   # Arquitectura, modelos, endpoints y flujos
 ├── .env.example
 └── package.json
@@ -96,6 +97,16 @@ Todas las respuestas son JSON con la forma `{ success, message?, data?, details?
 | POST | `/api/auth/register` | No | Registro. Body: `{ name, email, password }` |
 | POST | `/api/auth/login` | No | Login. Body: `{ email, password }` |
 | GET | `/api/auth/me` | Bearer JWT | Datos del usuario autenticado |
+| GET | `/api/habits` | Bearer JWT | Lista paginada. Query: `search`, `category`, `frequency`, `status`, `sort` (`newest`\|`oldest`\|`name`), `page`, `limit` (máx. 50) |
+| POST | `/api/habits` | Bearer JWT | Crear. Body: `{ name, description?, category, frequency, goal: { target, unit? }, status? }` |
+| GET | `/api/habits/:id` | Bearer JWT | Consultar un hábito |
+| PUT | `/api/habits/:id` | Bearer JWT | Editar (mismo body que crear) |
+| PATCH | `/api/habits/:id/status` | Bearer JWT | Activar/desactivar. Body: `{ status: "active" \| "inactive" }` |
+| DELETE | `/api/habits/:id` | Bearer JWT | Eliminar |
+| GET | `/api/habits/stats` | Bearer JWT | Totales, activos, inactivos y conteo por categoría |
+| GET | `/api/habits/options` | Bearer JWT | Categorías, frecuencias y estados disponibles (con etiquetas) |
+
+Cada usuario solo ve y modifica sus propios hábitos: un hábito de otro usuario responde `404`.
 
 Ejemplo:
 
@@ -107,12 +118,15 @@ curl -X POST http://localhost:3000/api/auth/register \
 curl http://localhost:3000/api/auth/me -H "Authorization: Bearer <token>"
 ```
 
-Reglas de validación: nombre de 2 a 50 caracteres, email válido y único, contraseña de 8 a 72 caracteres con al menos una letra y un número.
+Reglas de validación:
+
+- Usuario: nombre de 2 a 50 caracteres, email válido y único, contraseña de 8 a 72 caracteres con al menos una letra y un número.
+- Hábito: nombre de 2 a 80 caracteres, descripción de hasta 300, categoría (`salud`, `ejercicio`, `alimentacion`, `estudio`, `trabajo`, `finanzas`, `mindfulness`, `social`, `hogar`, `otro`), frecuencia (`daily`, `weekly`, `monthly`), meta entera de 1 a 1000 con unidad opcional de hasta 30 caracteres (por defecto `veces`) y estado (`active`, `inactive`).
 
 Más detalle en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Hoja de ruta
 
 - [x] Fase 1: arquitectura, configuración, autenticación (registro, login, JWT, bcrypt, middleware) e interfaces de login, registro y dashboard
-- [ ] Fase 2: CRUD de hábitos
+- [x] Fase 2: gestión de hábitos (CRUD, búsqueda, filtros, activar/desactivar)
 - [ ] Fase 3: seguimiento diario, rachas y estadísticas

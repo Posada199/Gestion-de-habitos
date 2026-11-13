@@ -51,6 +51,7 @@ async function initDashboard() {
     const { data } = await AuthAPI.me();
     Session.save({ token: Session.getToken(), user: data.user });
     renderUser(data.user);
+    await HabitsModule.init();
     loader.hidden = true;
     app.hidden = false;
   } catch (error) {
