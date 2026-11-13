@@ -66,3 +66,24 @@ const AuthAPI = {
   login: (payload) => apiRequest('/auth/login', { method: 'POST', body: payload }),
   me: () => apiRequest('/auth/me', { auth: true }),
 };
+
+function toQueryString(params) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') search.set(key, value);
+  });
+  const query = search.toString();
+  return query ? `?${query}` : '';
+}
+
+const HabitsAPI = {
+  options: () => apiRequest('/habits/options', { auth: true }),
+  stats: () => apiRequest('/habits/stats', { auth: true }),
+  list: (params = {}) => apiRequest(`/habits${toQueryString(params)}`, { auth: true }),
+  get: (id) => apiRequest(`/habits/${encodeURIComponent(id)}`, { auth: true }),
+  create: (payload) => apiRequest('/habits', { method: 'POST', body: payload, auth: true }),
+  update: (id, payload) => apiRequest(`/habits/${encodeURIComponent(id)}`, { method: 'PUT', body: payload, auth: true }),
+  setStatus: (id, status) =>
+    apiRequest(`/habits/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: { status }, auth: true }),
+  remove: (id) => apiRequest(`/habits/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true }),
+};
